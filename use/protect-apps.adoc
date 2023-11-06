@@ -1,0 +1,198 @@
+---
+sidebar: sidebar 
+permalink: use/protect-apps.html 
+keywords: backup, back up, backup apps, back up apps, snapshots, snapshot an app, take a snapshot, take a backup, view backups, view snapshots, set policy, set schedule, schedule backups, schedule snapshots 
+summary: 使用自動保護原則或臨機操作、拍攝快照和備份資料、保護您的應用程式。 
+---
+= 利用快照與備份來保護應用程式
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/use/
+
+
+[role="lead"]
+使用自動保護原則或以臨機操作的方式、擷取快照與備份資料、以保護所有應用程式。您可以使用Astra Control Center UI或 https://docs.netapp.com/us-en/astra-automation["Astra Control API"^] 保護應用程式。
+
+.關於這項工作
+* * Helm已部署應用程式*：如果您使用Helm來部署應用程式、Astra Control Center需要Helm版本3。完全支援使用Helm 3部署的應用程式管理與複製（或從Helm 2升級至Helm 3）。不支援以Helm 2部署的應用程式。
+* *（僅限Openshift叢集）新增原則*：當您建立專案以在OpenShift叢集上裝載應用程式時、專案（或Kubernetes命名空間）會被指派一個安全性轉換唯一碼。若要啟用Astra Control Center來保護應用程式、並將應用程式移至OpenShift中的其他叢集或專案、您必須新增原則、讓應用程式以任何唯一識別碼的形式執行。例如、下列OpenShift CLI命令會將適當的原則授予WordPress應用程式。
++
+`oc new-project wordpress`
+`oc adm policy add-scc-to-group anyuid system:serviceaccounts:wordpress`
+`oc adm policy add-scc-to-user privileged -z default -n wordpress`
+
+
+
+您可以執行下列與保護應用程式資料相關的工作：
+
+* <<設定保護原則>>
+* <<建立快照>>
+* <<建立備份>>
+* <<檢視快照與備份>>
+* <<刪除快照>>
+* <<取消備份>>
+* <<刪除備份>>
+
+
+
+
+== 設定保護原則
+
+保護原則可在已定義的排程中建立快照、備份或兩者、以保護應用程式。您可以選擇每小時、每天、每週和每月建立快照和備份、也可以指定要保留的複本數量。
+
+如果您需要每小時執行一次以上的備份或快照、您可以 https://docs.netapp.com/us-en/astra-automation/workflows/workflows_before.html["使用Astra Control REST API建立快照與備份"^]。
+
+
+TIP: 偏移備份和複寫排程、以避免排程重疊。例如、在每小時的最長時間執行備份、並排程複寫以 5 分鐘偏移和 10 分鐘間隔開始。
+
+
+IMPORTANT: 如果您的應用程式使用以作為後盾的儲存類別 `ontap-nas-economy` 驅動程式、無法使用保護原則。如果您想要排程備份和快照、請移轉至 Astra Control 所支援的儲存類別。
+
+.步驟
+. 選取*應用程式*、然後選取應用程式名稱。
+. 選擇*資料保護*。
+. 選取*設定保護原則*。
+. 選擇每小時、每天、每週和每月保留的快照和備份數量、以定義保護排程。
++
+您可以同時定義每小時、每日、每週及每月排程。在您設定保留層級之前、排程不會變成作用中。
+
++
+當您設定備份的保留層級時、可以選擇要儲存備份的儲存區。
+
++
+下列範例設定四種保護排程：每小時、每日、每週及每月提供快照與備份。
+
++
+image:screenshot-config-protection-policy.png["範例組態原則的螢幕擷取畫面、您可以選擇每小時、每天、每週或每月拍攝快照和備份。"]
+
+. 選擇* Review *。
+. 選取*設定保護原則。*
+
+
+.結果
+Astra Control會使用您定義的排程和保留原則來建立和保留快照和備份、以實作資料保護原則。
+
+
+
+== 建立快照
+
+您可以隨時建立隨需快照。
+
+
+IMPORTANT: 如果您的應用程式使用以作為後盾的儲存類別 `ontap-nas-economy` 驅動程式、無法建立快照。使用替代的儲存類別來執行快照。
+
+.步驟
+. 選擇*應用程式*。
+. 在所需應用程式*「Actions」（動作）欄的「Options」（選項）功能表中、選取*「Snapshot」（快照）*。
+. 自訂快照的名稱、然後選取*下一步*。
+. 檢閱快照摘要、然後選取* Snapshot *。
+
+
+.結果
+快照程序隨即開始。當「*資料保護*>*快照*」頁面的「*狀態*」欄中的狀態為「*健全*」時、快照就會成功。
+
+
+
+== 建立備份
+
+您也可以隨時備份應用程式。
+
+
+NOTE: Astra Control Center中的S3鏟斗未報告可用容量。在備份或複製由Astra Control Center管理的應用程式之前、請先查看ONTAP 資訊庫（英文）或StorageGRID 資訊庫（英文）管理系統中的庫位資訊。
+
+
+IMPORTANT: 如果您的應用程式使用以作為後盾的儲存類別 `ontap-nas-economy` 驅動程式、請確定您已定義 `backendType` 中的參數 https://docs.netapp.com/us-en/trident/trident-reference/objects.html#kubernetes-storageclass-objects["Kubernetes 儲存物件"^] 值為 `ontap-nas-economy` 執行任何保護作業之前。備份以支援的應用程式 `ontap-nas-economy` 在備份作業完成之前、應用程式會中斷運作、且無法使用。
+
+.步驟
+. 選擇*應用程式*。
+. 在所需應用程式*「Actions」（動作）欄的「Options」（選項）功能表中、選取*「Back up」（備份）*。
+. 自訂備份名稱。
+. 選擇是否要從現有的快照備份應用程式。如果選取此選項、您可以從現有快照清單中進行選擇。
+. 從儲存貯體清單中選擇要備份的目的地儲存桶。
+. 選擇*下一步*。
+. 檢閱備份摘要、然後選取*備份*。
+
+
+.結果
+Astra Control會建立應用程式的備份。
+
+
+NOTE: 如果您的網路中斷或異常緩慢、備份作業可能會逾時。這會導致備份失敗。
+
+
+NOTE: 如果您需要取消執行中的備份、請依照中的指示操作 <<取消備份>>。若要刪除備份、請等到備份完成後再依照中的指示進行 <<刪除備份>>。
+
+
+NOTE: 資料保護作業（複製、備份、還原）及後續持續調整磁碟區大小之後、UI中會顯示新的磁碟區大小、延遲最多20分鐘。資料保護作業只需幾分鐘就能成功完成、您可以使用儲存後端的管理軟體來確認磁碟區大小的變更。
+
+
+
+== 檢視快照與備份
+
+您可以從「資料保護」索引標籤檢視應用程式的快照與備份。
+
+.步驟
+. 選取*應用程式*、然後選取應用程式名稱。
+. 選擇*資料保護*。
++
+快照預設會顯示。
+
+. 選取*備份*以查看備份清單。
+
+
+
+
+== 刪除快照
+
+刪除不再需要的排程或隨需快照。
+
+
+NOTE: 您無法刪除目前正在複寫的快照。
+
+.步驟
+. 選取*應用程式*、然後選取託管應用程式的名稱。
+. 選擇*資料保護*。
+. 在所需快照*「Actions」（動作）欄的「Options」（選項）功能表中、選取*「Delete snapshot」（刪除快照）*。
+. 輸入「DELETE」一詞以確認刪除、然後選取*「Yes、Delete snapshot *（是、刪除快照*）」。
+
+
+.結果
+Astra Control會刪除快照。
+
+
+
+== 取消備份
+
+您可以取消進行中的備份。
+
+
+TIP: 若要取消備份、備份必須在中 `Running` 州/省。您無法取消中的備份 `Pending` 州/省。
+
+.步驟
+. 選取*應用程式*、然後選取應用程式名稱。
+. 選擇*資料保護*。
+. 選擇*備份*。
+. 在所需備份*「Actions」（動作）*欄的「Options」（選項）功能表中、選取*「Cancel*」（取消*）。
+. 輸入「cancel」一詞以確認操作、然後選擇「* Yes、cancel backup*（是、取消備份*）」。
+
+
+
+
+== 刪除備份
+
+刪除不再需要的排程或隨需備份。
+
+
+NOTE: 如果您需要取消執行中的備份、請依照中的指示操作 <<取消備份>>。若要刪除備份、請等到備份完成後再使用這些指示。
+
+.步驟
+. 選取*應用程式*、然後選取應用程式名稱。
+. 選擇*資料保護*。
+. 選擇*備份*。
+. 在所需備份*「Actions」（動作）*欄的「Options」（選項）功能表中、選取*「Delete backup*」（刪除備份*）。
+. 輸入「DELETE」一詞以確認刪除、然後選取*「Yes、Delete backup*（是、刪除備份*）」。
+
+
+.結果
+Astra Control會刪除備份。

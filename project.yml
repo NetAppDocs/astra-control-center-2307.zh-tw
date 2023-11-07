@@ -10,8 +10,6 @@ settings:
   versions:
   - version-number: '23.07'
     url: "/astra-control-center-2307"
-  - version-number: Most recent
-    url: "/astra-control-center"
   - version-number: '23.04'
     url: "/astra-control-center-2304"
   - version-number: '22.11'

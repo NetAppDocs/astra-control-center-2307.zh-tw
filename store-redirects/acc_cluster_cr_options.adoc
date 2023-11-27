@@ -1,0 +1,8 @@
+---
+permalink: get-started/acc_cluster_cr_options.html 
+redirect: astra-control-center-2307/index.html 
+---
+= 
+:allow-uri-read: 
+
+

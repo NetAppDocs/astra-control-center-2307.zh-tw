@@ -3109,7 +3109,6 @@ CRD是整個叢集的物件、安裝這些物件可能會影響叢集的其他�
   <block id="dd490b81914dd945601e442a41cb4222" category="sidebar">NetApp社群</block>
   <block id="874d8a5301794a9ca2aba132ac2460f3" category="sidebar">Kubernetes Hub</block>
   <block id="213686afc3803be7caa09348765467fe" category="sidebar">取得協助的地方</block>
-  <block id="0a560904c58e3cede88c521d796e1617" category="sidebar">Astra Control Center文件</block>
   <block id="93168a8084b3e838d2932c4734bd234e" category="sidebar">舊版</block>
   <block id="be11c74c1dd7f307bb80183a90dc2067" category="sidebar">開始使用</block>
   <block id="6bdc7c13872089b240b2d2e134bf8244" category="sidebar">設定外部憑證管理程式</block>
@@ -3128,4 +3127,5 @@ CRD是整個叢集的物件、安裝這些物件可能會影響叢集的其他�
   <block id="0460583622f03a52d7693094d6fa2452" category="sidebar">概念</block>
   <block id="8d85c59d57ad2cafad4f894413219af0" category="sidebar">儲存類別和PV大小</block>
   <block id="ae5601e1a5453d0b5924098584b9c3f2" category="sidebar">此Astra Control Center版本的新功能</block>
+  <block id="6864eb9fc45cd6c1219a8562ce1cbe18" category="sidebar">Astra Control Center 23.07 文件</block>
 </blocks>
